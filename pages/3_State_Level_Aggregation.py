@@ -318,8 +318,6 @@ map_level = st.sidebar.radio(
     ["Postcode level", "State level"],
 )
 
-animate = st.sidebar.checkbox("Animate over years")
-
 # ─────────────────────────────────────────────────────────────
 # FILTER
 # ─────────────────────────────────────────────────────────────
@@ -407,34 +405,7 @@ def render_map(df_y, year_label=""):
     return deck
 
 
-if animate:
-    map_ph = st.empty()
-
-    # Warm-up frame so pydeck initialises before animation starts
-    with map_ph.container():
-        st.markdown(f"**Loading map...**")
-        st.pydeck_chart(
-            render_map(df_year),
-            use_container_width=True
-        )
-
-    time.sleep(1.5)
-
-    # Actual animation
-    for yr in years:
-        df_anim = df_filtered[df_filtered["year"] == yr]
-
-        with map_ph.container():
-            st.markdown(f"**Year: {yr}**")
-            st.pydeck_chart(
-                render_map(df_anim),
-                use_container_width=True
-            )
-
-        time.sleep(3.0)
-else:
-    st.pydeck_chart(render_map(df_year), use_container_width=True)
-
+st.pydeck_chart(render_map(df_year), use_container_width=True)
 st.markdown("---")
 
 # ─────────────────────────────────────────────────────────────
