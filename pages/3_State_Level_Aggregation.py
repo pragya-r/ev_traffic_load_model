@@ -257,8 +257,8 @@ def hourly_chart(hourly_mbps, title, ev_count, total_gb):
                 f"<b>{title}</b>  "
                 f"<span style='font-size:13px; color:grey'>  "
                 f"EVs: {ev_count:,} &nbsp;|&nbsp; "
-                f"Total Upload: {total_gb:,.1f} &nbsp;|&nbsp; "
-                f"Peak: {peak_mbps:,.0f} Mbps at {HOUR_LABELS[peak_h]} GB</span>"
+                f"Total Upload: {total_gb:,.1f} GB &nbsp;|&nbsp; "
+                f"Peak: {peak_mbps:,.0f} Mbps at {HOUR_LABELS[peak_h]}</span>"
             ),
             font_size=16,
         ),
