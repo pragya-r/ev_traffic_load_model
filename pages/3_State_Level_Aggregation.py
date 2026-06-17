@@ -431,7 +431,7 @@ if animate:
                 use_container_width=True
             )
 
-        time.sleep(1.0)
+        time.sleep(3.0)
 else:
     st.pydeck_chart(render_map(df_year), use_container_width=True)
 
