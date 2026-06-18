@@ -85,11 +85,7 @@ DEFAULT_CONFIG = {
         "adas_usage_percent":     (0.0,   1.0),
         "event_clip_size_MB":     (60.0, 100.0),
         "event_clip_metadata_MB":(1.0,    5.0),
-        "adas_clip_multiplier":   (2.0,   5.0),
-        "ota_update_size_MB":     (100.0,200.0),
-        "map_update_size_MB":     (300.0,700.0),
-        "ota_update_bool_p":      0.1,
-        "map_update_bool_p":      0.1,
+        "adas_clip_multiplier":   (2.0,   5.0)
     },
     "telemetry_groups": {
         "charging":        (191.0, 291.0, 1.0,    2.0),
@@ -208,10 +204,6 @@ def generate_inputs(rng, n, config):
     s["event_clip_size_MB"]     = _norm_dist(rng, *shared["event_clip_size_MB"],     n)
     s["event_clip_metadata_MB"] = _norm_dist(rng, *shared["event_clip_metadata_MB"], n)
     s["adas_clip_multiplier"]   = _norm_dist(rng, *shared["adas_clip_multiplier"],   n)
-    s["ota_update_size_MB"]     = _norm_dist(rng, *shared["ota_update_size_MB"],     n)
-    s["ota_update_bool"]        = rng.binomial(1, shared["ota_update_bool_p"],       n)
-    s["map_update_size_MB"]     = _norm_dist(rng, *shared["map_update_size_MB"],     n)
-    s["map_update_bool"]        = rng.binomial(1, shared["map_update_bool_p"],       n)
 
     for group in TELEMETRY_GROUPS:
         sz_lo, sz_hi, rt_lo, rt_hi = config["telemetry_groups"][group]
@@ -242,14 +234,10 @@ def calculate_data_usage(df):
     fleet = (df["data_sharing_opt_in"].values * df["base_events_per_hour"].values
              * df["event_clip_size_MB"].values * MB_TO_BYTES * w_hrs)
     up_tot = tel + safe + fleet
-    down   = ((df["ota_update_bool"].values * df["ota_update_size_MB"].values
-               + df["map_update_bool"].values * df["map_update_size_MB"].values) * MB_TO_BYTES)
 
     return pd.DataFrame({
         "upstream_bytes":        up_tot,
         "upstream_gb":           up_tot * BYTES_TO_GB,
-        "downstream_gb":         down   * BYTES_TO_GB,
-        "total_gb":             (up_tot + down) * BYTES_TO_GB,
         "upstream_telemetry_gb": tel   * BYTES_TO_GB,
         "upstream_safety_gb":    safe  * BYTES_TO_GB,
         "upstream_fleet_gb":     fleet * BYTES_TO_GB,
@@ -415,7 +403,7 @@ def render_advanced_editor():
         "These parameters apply across all personas and are not persona-specific. "
         "Adjust only if you understand the underlying model."
     )
-    with st.expander("Shared Population Parameters", expanded=False):
+    with st.expander("Behavioural ranges", expanded=False):
         sr = cfg()["shared_ranges"]
 
         c1, c2, c3 = st.columns(3)
@@ -428,10 +416,6 @@ def render_advanced_editor():
                 "Event clip size (MB)", 10.0, 200.0, tuple(sr["event_clip_size_MB"]),
                 step=5.0, key="sr_clip_sz",
             ))
-            sr["ota_update_size_MB"] = tuple(st.slider(
-                "OTA update size (MB)", 50.0, 500.0, tuple(sr["ota_update_size_MB"]),
-                step=10.0, key="sr_ota_sz",
-            ))
         with c2:
             sr["adas_usage_percent"] = tuple(st.slider(
                 "ADAS usage fraction", 0.0, 1.0, tuple(sr["adas_usage_percent"]),
@@ -440,10 +424,6 @@ def render_advanced_editor():
             sr["event_clip_metadata_MB"] = tuple(st.slider(
                 "Clip metadata (MB)", 0.5, 20.0, tuple(sr["event_clip_metadata_MB"]),
                 step=0.5, key="sr_clip_meta",
-            ))
-            sr["map_update_size_MB"] = tuple(st.slider(
-                "Map update size (MB)", 100.0, 1000.0, tuple(sr["map_update_size_MB"]),
-                step=25.0, key="sr_map_sz",
             ))
         with c3:
             sr["adas_clip_multiplier"] = tuple(st.slider(
@@ -454,21 +434,12 @@ def render_advanced_editor():
                 "Data-sharing opt-in probability", 0.0, 1.0,
                 float(sr["data_sharing_opt_in_p"]), step=0.05, key="sr_optin_p",
             )
-
-        c4, c5 = st.columns(2)
-        with c4:
-            sr["ota_update_bool_p"] = st.slider(
-                "P(OTA update occurs)", 0.0, 1.0, float(sr["ota_update_bool_p"]),
-                step=0.05, key="sr_ota_p",
-            )
-        with c5:
-            sr["map_update_bool_p"] = st.slider(
-                "P(map update occurs)", 0.0, 1.0, float(sr["map_update_bool_p"]),
-                step=0.05, key="sr_map_p",
-            )
-
-    with st.expander("Telemetry group ranges (size in bytes/msg, rate in Hz)", expanded=False):
+    # (size in bytes / msg, rate in Hz)
+    with st.expander("Telemetry group ranges", expanded=False):
         tg = cfg()["telemetry_groups"]
+        st.caption(
+            "For each telemetry group, message sizes are measured in bytes and message rate in Hz. "
+        )
         for group in TELEMETRY_GROUPS:
             sz_lo, sz_hi, rt_lo, rt_hi = tg[group]
             st.markdown(f"**{group.replace('_', ' ').title()}**")
@@ -539,11 +510,6 @@ _DEFAULT_DICT_STR = """{
         'service':        (92,  144, 0.005,  0.05),
         'vehicle_config': (8,   172, 0.005,  0.05),
         'user_preference':(0,    25, 0.0005, 0.005),
-        # Downstream — indicative only
-        'ota_update_size_MB': (100, 200),
-        'map_update_size_MB': (300, 700),
-        'ota_update_bool':    (1, 0.1),        # Binomial (n, p)
-        'map_update_bool':    (1, 0.1),        # Binomial (n, p)
     },
 
     'NBN_TIERS': {
@@ -618,13 +584,10 @@ def _parse_dict_to_config(raw_text):
 
     _scalar_2tuple_keys = [
         "base_events_per_hour", "adas_usage_percent", "event_clip_size_MB",
-        "event_clip_metadata_MB", "adas_clip_multiplier",
-        "ota_update_size_MB", "map_update_size_MB",
+        "event_clip_metadata_MB", "adas_clip_multiplier"
     ]
     _binom_keys = {
-        "data_sharing_opt_in": "data_sharing_opt_in_p",
-        "ota_update_bool":     "ota_update_bool_p",
-        "map_update_bool":     "map_update_bool_p",
+        "data_sharing_opt_in": "data_sharing_opt_in_p"
     }
 
     shared = {}
@@ -1016,10 +979,9 @@ def render_results(results, scenario, n, elapsed, config):
     st.markdown("---")
 
     st.subheader("Export")
-    keep = ["persona", "nbn_tier", "upload_speed_mbps", "upstream_gb", "total_gb"] + tier_cols
     st.download_button(
         "Download simulation results as CSV",
-        data=results[keep].to_csv(index=False),
+        data=results.to_csv(index=False),
         file_name=f"mc_{scenario.replace(' ', '_')}_n{n}.csv",
         mime="text/csv",
     )
@@ -1057,7 +1019,7 @@ with st.expander("Simulation Input", expanded=True):
     st.markdown("---")
 
     if input_mode == "Sliders":
-        sub_tabs = st.tabs(["User Personas", "NBN Tiers", "Bandwidth Scenarios", "Advanced"])
+        sub_tabs = st.tabs(["User Personas", "NBN Tiers", "Bandwidth Scenarios", "Advanced Parameters"])
         with sub_tabs[0]:
             render_persona_editor()
         with sub_tabs[1]:
