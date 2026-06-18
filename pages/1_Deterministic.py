@@ -23,7 +23,7 @@ HOURS_PER_SIMULATION   = 24
 SECONDS_PER_HOUR       = 3600
 SECONDS_PER_SIMULATION = HOURS_PER_SIMULATION * SECONDS_PER_HOUR
 
-BAR_COLOR    = "#A23B72"
+BAR_COLOR    = ['#2E86AB', '#A23B72', '#F18F01']
 TIER_PALETTE = ["#d73027", "#f46d43", "#fdae61", "#fee08b", "#d9ef8b", "#91cf60",
                 "#66c2a5", "#3288bd", "#5e4fa2", "#9e0142"]
 
@@ -279,7 +279,6 @@ def render_person_editor():
         )
 
 
-
 def render_telemetry_editor():
     st.caption("For each telemetry group: message size in bytes, message rate in Hz.")
     tg = cfg()["telemetry_groups"]
@@ -303,7 +302,7 @@ def render_tier_and_scenario_editor():
     scenarios = cfg()["bandwidth_utilisation"]
 
     st.markdown("##### NBN Tier")
-    st.caption("Choose the person's NBN tier, or add a new one to the list.")
+    st.caption("Choose the person's upload speed.")
 
     tier_names = list(tiers.keys())
     sel_idx = tier_names.index(cfg()["selected_tier"]) if cfg()["selected_tier"] in tier_names else 0
@@ -311,56 +310,10 @@ def render_tier_and_scenario_editor():
         "Selected NBN tier", options=tier_names, index=sel_idx, key="d_selected_tier",
     )
 
-    with st.expander("Manage NBN tiers", expanded=False):
-        to_delete = None
-        for name in list(tiers.keys()):
-            with st.container(border=True):
-                cols = st.columns([3, 2, 1])
-                new_name = cols[0].text_input("Tier name", value=name, key=f"d_tier_name_{name}")
-                new_speed = cols[1].number_input(
-                    "Upload speed (Mbps)", min_value=0.1, value=float(tiers[name]),
-                    step=1.0, key=f"d_tier_speed_{name}",
-                )
-                if cols[2].button("Remove", key=f"d_tier_del_{name}", use_container_width=True):
-                    to_delete = name
-                    continue
-                tiers[name] = new_speed
-                if new_name != name and new_name.strip():
-                    if new_name in tiers:
-                        st.error(f"A tier named '{new_name}' already exists.")
-                    else:
-                        tiers[new_name] = tiers.pop(name)
-                        if cfg()["selected_tier"] == name:
-                            cfg()["selected_tier"] = new_name
-
-        if to_delete:
-            if len(tiers) <= 1:
-                st.error("At least one NBN tier is required — can't remove the last one.")
-            else:
-                del tiers[to_delete]
-                if cfg()["selected_tier"] == to_delete:
-                    cfg()["selected_tier"] = next(iter(tiers))
-                st.rerun()
-
-        c1, c2 = st.columns([3, 1])
-        with c1:
-            new_tier_name = st.text_input("New tier name", value="", key="d_new_tier_name")
-        with c2:
-            new_tier_speed = st.number_input(
-                "Speed (Mbps)", min_value=0.1, value=25.0, step=1.0, key="d_new_tier_speed",
-            )
-        if st.button("➕ Add NBN tier", use_container_width=True, key="d_add_tier_btn"):
-            name = new_tier_name.strip() or f"Tier {len(tiers) + 1}"
-            if name in tiers:
-                st.error(f"A tier named '{name}' already exists.")
-            else:
-                tiers[name] = new_tier_speed
-                st.rerun()
-
     st.markdown("---")
     st.markdown("##### Bandwidth Utilisation Scenario")
     st.caption(
-        "Choose the scenario applied to the person's tier, or add a new one. "
+        "Choose the scenario applied to the person's tier. "
         "A scenario scales the tier's effective upload speed by a factor "
         "(e.g. 0.90 = 10% reduction from congestion)."
     )
@@ -370,53 +323,6 @@ def render_tier_and_scenario_editor():
     cfg()["selected_scenario"] = st.selectbox(
         "Selected scenario", options=scen_names, index=sel_idx2, key="d_selected_scenario",
     )
-
-    with st.expander("Manage bandwidth scenarios", expanded=False):
-        to_delete = None
-        for name in list(scenarios.keys()):
-            with st.container(border=True):
-                cols = st.columns([3, 2, 1])
-                new_name = cols[0].text_input("Scenario name", value=name, key=f"d_scen_name_{name}")
-                new_val = cols[1].number_input(
-                    "Utilisation factor", min_value=0.01, max_value=2.0,
-                    value=float(scenarios[name]), step=0.05, key=f"d_scen_val_{name}",
-                )
-                if cols[2].button("Remove", key=f"d_scen_del_{name}", use_container_width=True):
-                    to_delete = name
-                    continue
-                scenarios[name] = new_val
-                if new_name != name and new_name.strip():
-                    if new_name in scenarios:
-                        st.error(f"A scenario named '{new_name}' already exists.")
-                    else:
-                        scenarios[new_name] = scenarios.pop(name)
-                        if cfg()["selected_scenario"] == name:
-                            cfg()["selected_scenario"] = new_name
-
-        if to_delete:
-            if len(scenarios) <= 1:
-                st.error("At least one scenario is required — can't remove the last one.")
-            else:
-                del scenarios[to_delete]
-                if cfg()["selected_scenario"] == to_delete:
-                    cfg()["selected_scenario"] = next(iter(scenarios))
-                st.rerun()
-
-        c3, c4 = st.columns([3, 1])
-        with c3:
-            new_scen_name = st.text_input("New scenario name", value="", key="d_new_scen_name")
-        with c4:
-            new_scen_val = st.number_input(
-                "Utilisation factor", min_value=0.01, max_value=2.0, value=1.0,
-                step=0.05, key="d_new_scen_val",
-            )
-        if st.button("➕ Add scenario", use_container_width=True, key="d_add_scenario_btn"):
-            name = new_scen_name.strip() or f"Scenario {len(scenarios) + 1}"
-            if name in scenarios:
-                st.error(f"A scenario named '{name}' already exists.")
-            else:
-                scenarios[name] = new_scen_val
-                st.rerun()
 
 
 # ─────────────────────────────────────────────────────────────
@@ -617,7 +523,7 @@ def render_results(result):
 
     st.caption(
         f"Arrival time: **{_to_twelve_hour(arrival)}**  ·  "
-        f"NBN Tier: **{result['selected_tier']}** ({result['selected_speed']:.0f} Mbps)  ·  "
+        f"Upload Speed: **{result['selected_tier']}** ({result['selected_speed']:.0f} Mbps)  ·  "
         f"Scenario: **{result['selected_scenario']}** (×{result['selected_util']:.2f})  ·  "
         f"Effective speed: **{result['selected_eff_speed']:.2f} Mbps**"
     )
@@ -632,47 +538,6 @@ def render_results(result):
 
     st.markdown("---")
 
-    # ── Upload window visual ──────────────────────────────────
-    st.subheader("Upload Window")
-    st.caption(
-        f"The vehicle arrives home at {_to_twelve_hour(arrival)} and begins uploading immediately. "
-        f"At the selected tier and scenario, the upload finishes at "
-        f"{_to_twelve_hour(result['selected_upload_end'])}."
-    )
-
-    start = result["selected_upload_start"]
-    end   = result["selected_upload_end"]
-    tick_h = list(range(0, 30, 2))
-
-    fig_window = go.Figure()
-    fig_window.add_trace(go.Bar(
-        x=[end - start], y=["Upload"], base=[start],
-        orientation="h", marker_color=BAR_COLOR, marker_line_color="black",
-        marker_line_width=1, width=0.5,
-    ))
-    fig_window.add_vline(
-        x=start, line_dash="dash", line_color="steelblue",
-        annotation_text=f"Arrival: {_to_twelve_hour(start)}",
-        annotation_position="top left", annotation_font_color="steelblue",
-    )
-    fig_window.add_vline(
-        x=end, line_dash="dash", line_color="red",
-        annotation_text=f"Complete: {_to_twelve_hour(end)}",
-        annotation_position="top right", annotation_font_color="red",
-    )
-    fig_window.update_layout(
-        xaxis=dict(title="Time of day", tickmode="array", tickvals=tick_h,
-                   ticktext=[_to_twelve_hour(h) for h in tick_h], tickangle=-45,
-                   range=[max(0, start - 2), max(end + 2, start + 4)]),
-        yaxis=dict(title="", showticklabels=False),
-        plot_bgcolor="white", paper_bgcolor="white",
-        showlegend=False, height=220,
-        margin=dict(t=40, b=70, l=40, r=30),
-    )
-    st.plotly_chart(fig_window, use_container_width=True)
-
-    st.markdown("---")
-
     # ── Breakdown ─────────────────────────────────────────────
     st.subheader("Upstream Data Breakdown")
     components = {
@@ -683,8 +548,8 @@ def render_results(result):
     fig_bar = go.Figure()
     fig_bar.add_trace(go.Bar(
         x=list(components.keys()), y=list(components.values()),
-        marker_color=[BAR_COLOR, TIER_PALETTE[0], TIER_PALETTE[3]],
-        marker_line_color="black", marker_line_width=0.6,
+        marker_color=[BAR_COLOR[0], BAR_COLOR[1], BAR_COLOR[2]],
+        marker_line_color="black", marker_line_width=0.6, opacity=0.7,
         text=[f"{v:.4f} GB" for v in components.values()], textposition="outside",
     ))
     fig_bar.update_layout(
@@ -696,45 +561,38 @@ def render_results(result):
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 
-    st.dataframe(
-        pd.DataFrame([{
-            "Telemetry (GB)":     round(usage["upstream_telemetry_gb"], 6),
-            "Safety Clips (GB)":  round(usage["upstream_safety_gb"], 6),
-            "Fleet Sharing (GB)": round(usage["upstream_fleet_gb"], 6),
-            "Total Upstream (GB)": round(usage["upstream_gb"], 6),
-        }]),
-        use_container_width=True, hide_index=True,
-    )
-
     st.markdown("---")
 
     # ── Full tier x scenario reference table ─────────────────
-    st.subheader("Upload Time — All Tiers and All Scenarios")
-    st.caption(
-        "Reference table showing how upload time would change under every tier/scenario "
-        "combination. The exported CSV also includes upload start/end clock times for each row."
-    )
+    st.subheader("Upload Time Across All Tiers and Scenarios")
 
     full = result["full_table"].copy()
     pivot = full.pivot(index="nbn_tier", columns="scenario", values="upload_hours")
     tier_order = list(cfg()["nbn_tiers"].keys())
     pivot = pivot.reindex([t for t in tier_order if t in pivot.index])
-    st.dataframe(pivot.round(4), use_container_width=True)
 
     fig_tier = go.Figure()
+
     for i, scen in enumerate(pivot.columns):
         fig_tier.add_trace(go.Bar(
-            x=pivot.index, y=pivot[scen],
+            x=pivot.index,
+            y=pivot[scen],
             name=scen,
-            marker_color=TIER_PALETTE[i % len(TIER_PALETTE)],
-            marker_line_color="black", marker_line_width=0.4,
+            marker_color=[
+                TIER_PALETTE[j % len(TIER_PALETTE)]
+                for j in range(len(pivot.index))
+            ],
+            opacity=1.0 if i == 0 else 0.6,
+            marker_line_color="black",
+            marker_line_width=0.4,
+            text=scen
         ))
     fig_tier.update_layout(
         barmode="group",
-        xaxis=dict(title="NBN Tier"),
+        xaxis=dict(title="Upload Speed"),
         yaxis=dict(title="Upload time (hours)", gridcolor="lightgrey"),
         plot_bgcolor="white", paper_bgcolor="white",
-        legend=dict(title="Scenario"), height=420,
+        showlegend=False,
         margin=dict(t=30, b=50, l=60, r=30),
     )
     st.plotly_chart(fig_tier, use_container_width=True)
@@ -762,7 +620,7 @@ st.markdown(
 )
 
 with st.expander("Model Input", expanded=True):
-    sub_tabs = st.tabs(["User Parameters", "NBN Tier and Scenario", "Telemetry Groups"])
+    sub_tabs = st.tabs(["User Parameters", "Upload Speed and Scenario", "Telemetry Groups"])
     with sub_tabs[0]:
         render_person_editor()
     with sub_tabs[1]:
