@@ -1,17 +1,3 @@
-"""
-Monte Carlo Simulation — Daily EV Data Usage
-=============================================
-Every model parameter is editable: personas can be added/removed/edited,
-NBN tiers can be added/removed/edited, bandwidth scenarios can be added/
-removed/edited, and shared population ranges are fully adjustable.
-
-Outputs:
-  • Total upstream GB distribution (histogram + KPIs)
-  • Upload time by NBN tier (box plot + percentile table)
-  • Population / timing distributions (arrival, busy hour, etc.)
-  • CSV export of raw results
-"""
-
 import copy
 import time
 
@@ -53,7 +39,7 @@ CHARGING_ONLY = {"charging"}
 ALWAYS_ACTIVE = {"service", "vehicle_config", "user_preference"}
 
 # ─────────────────────────────────────────────────────────────
-# DEFAULT CONFIG  (the "factory settings" — used by Reset button)
+# DEFAULT CONFIG
 # ─────────────────────────────────────────────────────────────
 DEFAULT_CONFIG = {
     "user_personas": {
@@ -133,7 +119,7 @@ def cfg():
 
 
 # ─────────────────────────────────────────────────────────────
-# SIMULATION CORE  — all reads from `config`, nothing hardcoded
+# SIMULATION CORE
 # ─────────────────────────────────────────────────────────────
 
 def _norm_dist(rng, low, high, size):
@@ -906,7 +892,7 @@ def render_results(results, scenario, n, elapsed, config):
 
     st.markdown("---")
 
-    st.subheader("Upload Start & End Times")
+    st.subheader("Upload Start and End Times")
     start, end = _compute_upload_times(results, scenario, config)
     tick_h2 = list(range(0, 30, 2))
     bin_edges = dict(start=0, end=30, size=0.5)
