@@ -1,17 +1,3 @@
-"""
-EV Broadband Impact — Streamlit Dashboard
-==========================================
-Required files:
-  • ev_bandwidth_results.csv     — postcode-level simulation output
-  • postcode_suburb_lookup.csv   — columns: POSTCODE, SUBURBS_JOINED, STATE
-  • postcode_centroids.csv       — columns: postcode, latitude, longitude
-  • postal_areas.geojson         — postcode polygon boundaries
-  • states.geojson               — state polygon boundaries
-
-Run:
-  streamlit run app.py
-"""
-
 import json
 import time
 
