@@ -614,9 +614,7 @@ def render_results(result):
 # ─────────────────────────────────────────────────────────────
 st.title("Deterministic Model")
 st.markdown(
-    "Single-person, single-point version of the EV upstream data model — "
-    "every parameter is one fixed value, not a range or population mix. "
-    "Results are exact, computed directly without sampling."
+    "Single-person, single-point version of the EV upstream data model."
 )
 
 with st.expander("Model Input", expanded=True):

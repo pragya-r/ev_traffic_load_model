@@ -47,21 +47,18 @@ DEFAULT_CONFIG = {
             "weight": 0.2,
             "hours_charging": (4.0,  8.0),
             "hours_driving":  (0.5,  3.0),
-            "safety_n":       1,
             "safety_p":       0.005,
         },
         "moderate": {
             "weight": 0.5,
             "hours_charging": (6.0, 10.0),
             "hours_driving":  (1.0,  6.0),
-            "safety_n":       1,
             "safety_p":       0.010,
         },
         "heavy": {
             "weight": 0.3,
             "hours_charging": (8.0, 12.0),
             "hours_driving":  (3.0, 10.0),
-            "safety_n":       1,
             "safety_p":       0.015,
         },
     },
@@ -181,7 +178,7 @@ def generate_inputs(rng, n, config):
     for name in persona_names:
         mask = personas == name
         p_cfg = personas_cfg[name]
-        safety_col[mask] = rng.binomial(int(p_cfg["safety_n"]), p_cfg["safety_p"], size=mask.sum())
+        safety_col[mask] = rng.binomial(1, p_cfg["safety_p"], size=mask.sum())
     s["safety_event"] = safety_col
 
     s["base_events_per_hour"]   = _norm_dist(rng, *shared["base_events_per_hour"],   n)
@@ -257,7 +254,7 @@ def _config_cache_key(config, n, scenario, seed):
 
 
 # ─────────────────────────────────────────────────────────────
-# HELPERS — timing / busy hour
+# HELPERS (timing / busy hour)
 # ─────────────────────────────────────────────────────────────
 
 def _stats(series):
@@ -323,35 +320,31 @@ def render_persona_editor():
                 to_delete = name
                 continue
 
-            c1, c2, c3 = st.columns(3)
+            c1, c2 = st.columns(2)
             with c1:
                 p["weight"] = st.number_input(
                     "Population weight", min_value=0.0, value=float(p["weight"]),
                     step=0.05, key=f"persona_weight_{name}",
                 )
             with c2:
-                p["hours_charging"] = tuple(st.slider(
-                    "Charging hours", 0.0, 24.0, tuple(p["hours_charging"]),
-                    step=0.5, key=f"persona_chg_{name}",
-                ))
-            with c3:
-                p["hours_driving"] = tuple(st.slider(
-                    "Driving hours", 0.0, 24.0, tuple(p["hours_driving"]),
-                    step=0.5, key=f"persona_drv_{name}",
-                ))
-
-            c4, c5 = st.columns(2)
-            with c4:
-                p["safety_n"] = st.number_input(
-                    "Safety event — n (Binomial trials)", min_value=0, value=int(p["safety_n"]),
-                    step=1, key=f"persona_safety_n_{name}",
-                )
-            with c5:
                 p["safety_p"] = st.number_input(
-                    "Safety event — p (probability)", min_value=0.0, max_value=1.0,
+                    "Safety event (probability)", min_value=0.0, max_value=1.0,
                     value=float(p["safety_p"]), step=0.001, format="%.4f",
                     key=f"persona_safety_p_{name}",
                 )
+
+
+            c4, c5 = st.columns(2)
+            with c4:
+                p["hours_charging"] = tuple(st.slider(
+                        "Charging hours", 0.0, 24.0, tuple(p["hours_charging"]),
+                        step=0.5, key=f"persona_chg_{name}",
+                    ))
+            with c5:
+                p["hours_driving"] = tuple(st.slider(
+                        "Driving hours", 0.0, 24.0, tuple(p["hours_driving"]),
+                        step=0.5, key=f"persona_drv_{name}",
+                    ))
 
             if new_name != name and new_name.strip():
                 if new_name in personas:
@@ -371,7 +364,7 @@ def render_persona_editor():
             i += 1
         personas[new_name] = {
             "weight": 0.1, "hours_charging": (4.0, 8.0), "hours_driving": (1.0, 4.0),
-            "safety_n": 1, "safety_p": 0.01,
+            "safety_p": 0.01,
         }
         st.rerun()
 
@@ -417,7 +410,7 @@ def render_advanced_editor():
                 step=0.5, key="sr_adas_mult",
             ))
             sr["data_sharing_opt_in_p"] = st.slider(
-                "Data-sharing opt-in probability", 0.0, 1.0,
+                "Data-sharing opt-in (probability)", 0.0, 1.0,
                 float(sr["data_sharing_opt_in_p"]), step=0.05, key="sr_optin_p",
             )
     # (size in bytes / msg, rate in Hz)
@@ -515,9 +508,6 @@ _DEFAULT_DICT_STR = """{
 
 
 def _parse_dict_to_config(raw_text):
-    """Parse the notebook-style dict literal and convert it into the internal
-    config schema. Raises ValueError with a human-readable message on any
-    problem — never normalises weights."""
     try:
         parsed = eval(raw_text, {"__builtins__": {}})
     except Exception as e:
@@ -555,7 +545,6 @@ def _parse_dict_to_config(raw_text):
             "weight":         float(spec["weight"]),
             "hours_charging": (float(p["hours_charging"][0]), float(p["hours_charging"][1])),
             "hours_driving":  (float(p["hours_driving"][0]),  float(p["hours_driving"][1])),
-            "safety_n":       int(p["safety_event"][0]),
             "safety_p":       float(p["safety_event"][1]),
         }
 
@@ -648,7 +637,7 @@ def _parse_dict_to_config(raw_text):
 def render_dict_input_tab():
     # st.markdown("##### Manual Dictionary Input")
     st.caption(
-        "Paste a Python dict literal matching the notebook's original structure — "
+        "Paste a Python dict literal matching the notebook's original structure: "
         "`USER_PERSONAS`, `SHARED_RANGES`, `NBN_TIERS`, `BANDWIDTH_UTILISATION`. "
         "Weights must sum to exactly 1.0."
         "Loading here overwrites the editors in the other tabs."
@@ -676,7 +665,7 @@ def render_dict_input_tab():
             st.success("✅ Dictionary is valid.")
             if load_clicked:
                 st.session_state["config"] = new_config
-                st.success("✅ Loaded into config — switch tabs to see the values, or run the simulation.")
+                st.success("✅ Loaded into config (switch tabs to see the values, or run the simulation).")
         except ValueError as e:
             st.error(f"❌ {e}")
 
@@ -783,13 +772,13 @@ def render_results(results, scenario, n, elapsed, config):
     st.caption(f"Completed {n:,} simulations in {elapsed:.2f}s  ·  Scenario: **{scenario}**")
     st.markdown("---")
 
-    st.subheader("Upstream Data — Summary")
+    st.subheader("Results Summary")
     k1, k2, k3, k4, k5 = st.columns(5)
     k1.metric("Mean (GB)",            f"{up_stats['mean']:.3f}")
     k2.metric("Median (GB)",          f"{up_stats['median']:.3f}")
     k3.metric("P5 (GB)",              f"{up_stats['p5']:.3f}")
     k4.metric("P95 (GB)",             f"{up_stats['p95']:.3f}")
-    k5.metric("Total — all EVs (GB)", f"{upstream.sum():,.1f}")
+    k5.metric("Total (GB)", f"{upstream.sum():,.1f}")
 
     st.markdown("---")
 
@@ -979,7 +968,7 @@ def render_results(results, scenario, n, elapsed, config):
 st.title("Monte Carlo Simulation")
 st.markdown(
     "Simulate daily per-EV upstream data usage and upload time across the NBN tier mix. "
-    "Every parameter below is editable — add or remove personas, NBN tiers, and "
+    "Every parameter below is editable. Add or remove personas, NBN tiers, and "
     "bandwidth scenarios as needed."
 )
 
