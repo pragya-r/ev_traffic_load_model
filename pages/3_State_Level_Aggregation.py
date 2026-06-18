@@ -318,10 +318,6 @@ df_year = df_filtered[
 # HEADER METRICS
 # ─────────────────────────────────────────────────────────────
 st.title("EV Broadband Impact Dashboard")
-st.markdown(
-    f"**Year:** {selected_year}"
-)
-
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Total EVs",             f"{df_year['ev_count'].sum():,.0f}")
 c2.metric("Daily Upload (TB)",     f"{df_year['total_upstream_gb'].sum() / 1000:.2f}")
@@ -333,8 +329,7 @@ st.markdown("---")
 # ─────────────────────────────────────────────────────────────
 # MAP
 # ─────────────────────────────────────────────────────────────
-st.subheader(f"Geographic Distribution — {map_level}")
-
+st.subheader(f"Geographic Distribution ({map_level})")
 view_state = pdk.ViewState(latitude=-25.5, longitude=134.0, zoom=3, pitch=0)
 
 tooltip_postcode = {
