@@ -772,7 +772,7 @@ def render_results(results, scenario, n, elapsed, config):
     st.caption(f"Completed {n:,} simulations in {elapsed:.2f}s  ·  Scenario: **{scenario}**")
     st.markdown("---")
 
-    st.subheader("Results Summary")
+    st.subheader("Results Summary", anchor=False)
     k1, k2, k3, k4, k5 = st.columns(5)
     k1.metric("Mean (GB)",            f"{up_stats['mean']:.3f}")
     k2.metric("Median (GB)",          f"{up_stats['median']:.3f}")
@@ -782,7 +782,7 @@ def render_results(results, scenario, n, elapsed, config):
 
     st.markdown("---")
 
-    st.subheader("Upstream Data Distribution")
+    st.subheader("Upstream Data Distribution", anchor=False)
     fig_hist = go.Figure()
     fig_hist.add_trace(go.Histogram(
         x=upstream, nbinsx=60,
@@ -806,7 +806,7 @@ def render_results(results, scenario, n, elapsed, config):
 
     st.markdown("---")
 
-    st.subheader("Upload Time by NBN Tier")
+    st.subheader("Upload Time by NBN Tier", anchor=False)
     tier_cols  = [c for c in results.columns if c.endswith("_upload_hours")]
     tier_names = [c.replace("_upload_hours", "") for c in tier_cols]
     palette    = (TIER_PALETTE * ((len(tier_names) // len(TIER_PALETTE)) + 1))[:len(tier_names)]
@@ -828,7 +828,7 @@ def render_results(results, scenario, n, elapsed, config):
 
     st.markdown("---")
 
-    st.subheader("NBN Tier Distribution")
+    st.subheader("NBN Tier Distribution", anchor=False)
     speed_to_tier = {info["upload_speed_mbps"]: t for t, info in config["nbn_tiers"].items()}
     tier_order    = list(config["nbn_tiers"].keys())
     tier_counts   = (results["upload_speed_mbps"].map(speed_to_tier)
@@ -852,7 +852,7 @@ def render_results(results, scenario, n, elapsed, config):
 
     st.markdown("---")
 
-    st.subheader("Home Arrival Time Distribution")
+    st.subheader("Home Arrival Time Distribution", anchor=False)
     arrival = results["home_arrival_time"] % 24
     arr_mean, arr_median = arrival.mean(), arrival.median()
 
@@ -881,7 +881,7 @@ def render_results(results, scenario, n, elapsed, config):
 
     st.markdown("---")
 
-    st.subheader("Upload Start and End Times")
+    st.subheader("Upload Start and End Times", anchor=False)
     start, end = _compute_upload_times(results, scenario, config)
     tick_h2 = list(range(0, 30, 2))
     bin_edges = dict(start=0, end=30, size=0.5)
@@ -918,7 +918,7 @@ def render_results(results, scenario, n, elapsed, config):
 
     st.markdown("---")
 
-    st.subheader("Network Busy Hour Profile")
+    st.subheader("Network Busy Hour Profile", anchor=False)
     profile = _compute_busy_hour_profile(results, scenario, config)
     tick_h3 = list(range(0, 30, 2))
 
@@ -953,7 +953,7 @@ def render_results(results, scenario, n, elapsed, config):
 
     st.markdown("---")
 
-    st.subheader("Export")
+    st.subheader("Export", anchor=False)
     st.download_button(
         "Download simulation results as CSV",
         data=results.to_csv(index=False),
@@ -965,7 +965,7 @@ def render_results(results, scenario, n, elapsed, config):
 # ─────────────────────────────────────────────────────────────
 # PAGE
 # ─────────────────────────────────────────────────────────────
-st.title("Monte Carlo Simulation")
+st.title("Monte Carlo Simulation", anchor=False)
 st.markdown(
     "Simulate daily per-EV upstream data usage and upload time across the NBN tier mix. "
     "Every parameter below is editable. Add or remove personas, NBN tiers, and "

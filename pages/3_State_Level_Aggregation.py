@@ -317,7 +317,7 @@ df_year = df_filtered[
 # ─────────────────────────────────────────────────────────────
 # HEADER METRICS
 # ─────────────────────────────────────────────────────────────
-st.title("EV Broadband Impact Dashboard")
+st.title("EV Broadband Impact Dashboard", anchor=False)
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Total EVs",             f"{df_year['ev_count'].sum():,.0f}")
 c2.metric("Daily Upload (TB)",     f"{df_year['total_upstream_gb'].sum() / 1000:.2f}")
@@ -329,7 +329,7 @@ st.markdown("---")
 # ─────────────────────────────────────────────────────────────
 # MAP
 # ─────────────────────────────────────────────────────────────
-st.subheader(f"Geographic Distribution ({map_level})")
+st.subheader(f"Geographic Distribution ({map_level})", anchor=False)
 view_state = pdk.ViewState(latitude=-25.5, longitude=134.0, zoom=3, pitch=0)
 
 tooltip_postcode = {
@@ -392,7 +392,7 @@ st.markdown("---")
 # ─────────────────────────────────────────────────────────────
 # HOURLY BANDWIDTH PROFILES
 # ─────────────────────────────────────────────────────────────
-st.subheader("Hourly Upload Bandwidth Profile")
+st.subheader("Hourly Upload Bandwidth Profile", anchor=False)
 
 tab_national, tab_state, tab_postcode = st.tabs(
     ["National", "By State", "By Postcode"]
@@ -441,7 +441,7 @@ st.markdown("---")
 # ─────────────────────────────────────────────────────────────
 # EXPORT
 # ─────────────────────────────────────────────────────────────
-st.subheader("Export")
+st.subheader("Export", anchor=False)
 csv = df_year.to_csv(index=False)
 st.download_button(
     "Download filtered data as CSV",

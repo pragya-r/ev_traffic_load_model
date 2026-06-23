@@ -530,7 +530,7 @@ def render_results(result):
     st.markdown("---")
 
     # ── Headline KPIs ─────────────────────────────────────────
-    st.subheader("Upstream Data and Upload Time")
+    st.subheader("Upstream Data and Upload Time", anchor=False)
     k1, k2, k3 = st.columns(3)
     k1.metric("Total upstream (GB/day)", f"{usage['upstream_gb']:.4f}")
     k2.metric("Upload time (hours)",     f"{result['selected_upload_hours']:.4f}")
@@ -539,7 +539,7 @@ def render_results(result):
     st.markdown("---")
 
     # ── Breakdown ─────────────────────────────────────────────
-    st.subheader("Upstream Data Breakdown")
+    st.subheader("Upstream Data Breakdown", anchor=False)
     components = {
         "Telemetry":     usage["upstream_telemetry_gb"],
         "Safety clips":  usage["upstream_safety_gb"],
@@ -564,7 +564,7 @@ def render_results(result):
     st.markdown("---")
 
     # ── Full tier x scenario reference table ─────────────────
-    st.subheader("Upload Time Across All Tiers and Scenarios")
+    st.subheader("Upload Time Across All Tiers and Scenarios", anchor=False)
 
     full = result["full_table"].copy()
     pivot = full.pivot(index="nbn_tier", columns="scenario", values="upload_hours")
@@ -600,7 +600,7 @@ def render_results(result):
     st.markdown("---")
 
     # ── Export ────────────────────────────────────────────────
-    st.subheader("Export")
+    st.subheader("Export", anchor=False)
     st.download_button(
         "Download full tier and scenario table as CSV",
         data=full.to_csv(index=False),
@@ -612,7 +612,7 @@ def render_results(result):
 # ─────────────────────────────────────────────────────────────
 # PAGE
 # ─────────────────────────────────────────────────────────────
-st.title("Deterministic Model")
+st.title("Deterministic Model", anchor=False)
 st.markdown(
     "Single-person, single-point version of the EV upstream data model."
 )
